@@ -7,39 +7,39 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 
-// import your routes (adjust paths if needed)
 import authRoutes from "./routes/authRoutes.js";
 import notesRoutes from "./routes/noteRoutes.js";
 import workspaceRoutes from "./routes/workspaceRoutes.js";
 
 const app = express();
 
-// Middleware
-app.use(cors());
+const corsOptions = {
+  origin: [
+    "http://localhost:5173",
+    "https://notesapp-si-backend.onrender.com"
+  ],
+  credentials: true,
+  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"],
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
 app.use(express.json());
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", notesRoutes);
 app.use("/api/workspaces", workspaceRoutes);
 
-// Root route
-app.get("/", (req, res) => {
-  res.send("✅ Notes App Backend is running...");
-});
+app.get("/", (req, res) => res.send("✅ Notes App Backend is running..."));
+app.get("/health", (req, res) => res.status(200).send("ok"));
 
-// MongoDB Connection
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log("✅ Connected to MongoDB Atlas");
-    // Start server only after DB is connected
-    app.listen(process.env.PORT || 5000, () =>
-      console.log(`🚀 Server running on port ${process.env.PORT || 5000}`)
-    );
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
