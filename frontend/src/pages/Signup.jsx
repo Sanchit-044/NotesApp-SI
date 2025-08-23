@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 
-const API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com/api";
+const RAW = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com";
+const API = RAW.replace(/\/+$/, "");
+const API_BASE = API.endsWith("/api") ? API : `${API}/api`;
 
 export default function Signup({ onNavigate, onSignup }) {
   const [name, setName] = useState("");
@@ -8,26 +10,16 @@ export default function Signup({ onNavigate, onSignup }) {
   const [pw, setPw] = useState("");
   const [msg, setMsg] = useState("");
 
-  // ✅ Frontend validation
   const validate = () => {
     const errors = [];
-    if (!name) {
-      errors.push("Username is required");
-    } else if (name.length < 3) {
-      errors.push("Username must be at least 3 characters");
-    }
+    if (!name) errors.push("Username is required");
+    else if (name.length < 3) errors.push("Username must be at least 3 characters");
 
-    if (!email) {
-      errors.push("Email is required");
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      errors.push("Invalid email format");
-    }
+    if (!email) errors.push("Email is required");
+    else if (!/\S+@\S+\.\S+/.test(email)) errors.push("Invalid email format");
 
-    if (!pw) {
-      errors.push("Password is required");
-    } else if (pw.length < 6) {
-      errors.push("Password must be at least 6 characters");
-    }
+    if (!pw) errors.push("Password is required");
+    else if (pw.length < 6) errors.push("Password must be at least 6 characters");
 
     return errors;
   };
@@ -39,23 +31,29 @@ export default function Signup({ onNavigate, onSignup }) {
       return;
     }
 
-    const res = await fetch(API + "/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: name, email, password: pw }),
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch(`${API_BASE}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: name, email, password: pw }),
+      });
 
-    if (res.ok && data.token) {
-      localStorage.setItem("token", data.token);
-      onSignup(); // ✅ update App state
-      onNavigate("dashboard");
-    } else {
-      if (data.errors) {
-        setMsg(data.errors.map((err) => err.msg).join(", "));
-      } else {
-        setMsg(data.msg || "Signup failed");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`HTTP ${res.status}: ${text}`);
       }
+
+      const data = await res.json();
+
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+        onSignup(data.token);            
+        onNavigate("dashboard");
+      } else {
+        setMsg("Signup failed: no token returned");
+      }
+    } catch (err) {
+      setMsg(err.message || "Network error");
     }
   };
 
@@ -98,7 +96,6 @@ export default function Signup({ onNavigate, onSignup }) {
           Sign Up
         </button>
 
-        {/* ✅ Show multiple errors clearly */}
         {msg && (
           <div className="mt-4 text-center space-y-1">
             {msg.split(", ").map((m, i) => (
