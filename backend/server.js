@@ -16,7 +16,7 @@ const app = express();
 const corsOptions = {
   origin: [
     "http://localhost:5173",
-    "https://notesapp-si-backend.onrender.com"
+    "https://notesapp-si-frontend.onrender.com"
   ],
   credentials: true,
   methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
