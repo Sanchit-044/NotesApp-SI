@@ -22,13 +22,13 @@ function App() {
       setCurrentUser(null);
       return;
     }
-    const RAW = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com/api";
-    const API = RAW.replace(/\/+$/, "");
-    const API_BASE = API.endsWith("/api") ? API : `${API}/api`;
+    const RAW = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com";
+const API = RAW.replace(/\/+$/, "");
+const API_BASE = API.endsWith("/api") ? API : `${API}/api`;
 
-    fetch(`${API_BASE}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+fetch(`${API_BASE}/auth/me`, {
+  headers: { Authorization: `Bearer ${token}` },
+})
       .then((res) => res.ok ? res.json() : null)
       .then((data) => setCurrentUser(data))
       .catch(() => setCurrentUser(null));
