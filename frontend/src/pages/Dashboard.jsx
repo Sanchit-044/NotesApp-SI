@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const RAW_API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com";
+const RAW_API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com/api";
 const API = RAW_API.replace(/\/+$/, "");
 const API_BASE = API.endsWith("/api") ? API : `${API}/api`;
 
