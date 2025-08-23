@@ -1,0 +1,88 @@
+:root {
+  --bg-light: #f9f9f9;
+  --bg-dark: #1f1f1f;
+  --text-light: #1f1f1f;
+  --text-dark: #f9f9f9;
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+}
+
+.auth-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  transition: background 0.3s, color 0.3s;
+}
+
+.auth-container.light {
+  background: var(--bg-light);
+  color: var(--text-light);
+}
+
+.auth-container.dark {
+  background: var(--bg-dark);
+  color: var(--text-dark);
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.auth-input:focus {
+  border-color: var(--primary);
+}
+
+.auth-button {
+  width: 100%;
+  padding: 10px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.auth-button:hover {
+  background: var(--primary-hover);
+}
+
+.auth-msg {
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.toggle-btn {
+  margin-top: 1rem;
+  background: none;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: block;
+  margin-left: auto;
+}
+
+.toggle-btn:hover {
+  background: var(--primary);
+  color: white;
+}
