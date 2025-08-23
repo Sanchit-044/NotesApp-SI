@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com";
+const API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com/api";
 
 export default function PublicNotes() {
   const [notes, setNotes] = useState([]);
