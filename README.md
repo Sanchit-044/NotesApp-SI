@@ -1,7 +1,14 @@
 Full Notes App (backend + frontend)
-Backend: Node/Express/MongoDB. Frontend: Vite + React with Tailwind CDN.
 Backend folder: backend/
 Frontend folder: frontend/
-Steps:
-  - Backend: cd backend && npm install && copy .env.example to .env and set MONGO_URI & JWT_SECRET then npm run dev
-  - Frontend: cd frontend && npm install && npm run dev
+Deployment: Render
+
+Tech-stack :-
+1. Backend : node.js, mongoDB (ATLAS), express, mongoose, JWT(auth)
+2. Frontend : React + Vite
+
+Website Link :-
+1. Frontend: https://notesapp-si-frontend.onrender.com
+2. Backend API: https://notesapp-si-backend.onrender.com
+
+I tried to create a fully functional full-stack app that allows user to Signup, Login, CRUD operations and a collaborative workspace but wasn't able to add tags endpoints and filter option.
