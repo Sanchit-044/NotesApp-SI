@@ -15,7 +15,7 @@ export default function Workspaces({ token }) {
   const [msg, setMsg] = useState("");
 
   // --- Robust API base normalization (same pattern you use elsewhere) ---
-  const RAW_API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com";
+  const RAW_API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com/api";
   const API = RAW_API.replace(/\/+$/, "");
   const API_BASE = API.endsWith("/api") ? API : `${API}/api`;
 
@@ -376,4 +376,5 @@ export default function Workspaces({ token }) {
     </div>
   );
 }
+
 
