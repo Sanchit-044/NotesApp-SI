@@ -9,7 +9,7 @@ import Workspaces from "./pages/Workspaces";
 function App() {
   const [route, setRoute] = useState(localStorage.getItem("route") || "home");
   const [token, setToken] = useState(localStorage.getItem("token") || null);
-  const [currentUser, setCurrentUser] = useState(null); // ✅
+  const [currentUser, setCurrentUser] = useState(null); 
 
   const loggedIn = !!token;
 
@@ -17,13 +17,12 @@ function App() {
     localStorage.setItem("route", route);
   }, [route]);
 
-  // ✅ Fetch current user when token changes
   useEffect(() => {
     if (!token) {
       setCurrentUser(null);
       return;
     }
-    const RAW = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const RAW = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com";
     const API = RAW.replace(/\/+$/, "");
     const API_BASE = API.endsWith("/api") ? API : `${API}/api`;
 
@@ -50,7 +49,7 @@ function App() {
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
-    setCurrentUser(null); // ✅ clear
+    setCurrentUser(null); 
     setRoute("home");
   };
 
