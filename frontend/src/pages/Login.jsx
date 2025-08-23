@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 
-const API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com/api";
+const RAW = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com";
+const API = RAW.replace(/\/+$/, "");               
+const API_BASE = API.endsWith("/api") ? API : `${API}/api`;
 
 export default function Login({ onNavigate, onLogin }) {
   const [email, setEmail] = useState("");
@@ -29,23 +31,28 @@ export default function Login({ onNavigate, onLogin }) {
       return;
     }
 
-    const res = await fetch(API + "/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password: pw }),
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pw }),
+      });
 
-    if (res.ok && data.token) {
-      // ✅ pass the token to App so it can store it
-      onLogin(data.token);
-      onNavigate("dashboard");
-    } else {
-      if (data.errors) {
-        setMsg(data.errors.map((err) => err.msg).join(", "));
-      } else {
-        setMsg(data.msg || "Incorrect email or password");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`HTTP ${res.status}: ${text}`);
       }
+
+      const data = await res.json();
+
+      if (data?.token) {
+        onLogin(data.token);
+        onNavigate("dashboard");
+      } else {
+        setMsg("Login failed: no token returned");
+      }
+    } catch (err) {
+      setMsg(err.message || "Network error");
     }
   };
 
