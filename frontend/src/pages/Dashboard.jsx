@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
-const RAW_API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com/api";
-const API = RAW_API.replace(/\/+$/, "");
+const RAW = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com";
+const API = RAW.replace(/\/+$/, "");
 const API_BASE = API.endsWith("/api") ? API : `${API}/api`;
 
 export default function Dashboard() {
@@ -9,62 +9,119 @@ export default function Dashboard() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isPublic, setIsPublic] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (token) load();
+  }, [token]);
 
   async function load() {
-    if (!token) return;
-    const res = await fetch(`${API_BASE}/notes`, {
-      headers: { Authorization: "Bearer " + token },
-    });
-    const data = await res.json();
-    setNotes(data || []);
+    setLoading(true);
+    setMsg("");
+    try {
+      const res = await fetch(`${API_BASE}/notes`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Load failed (${res.status}): ${text}`);
+      }
+
+      const data = await res.json();
+      setNotes(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setMsg(err.message || "Failed to load notes");
+      setNotes([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function createNote() {
-    const res = await fetch(`${API_BASE}/notes`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({ title, content, isPublic }),
-    });
-    if (res.ok) {
+    setMsg("");
+    try {
+      const res = await fetch(`${API_BASE}/notes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, content, isPublic }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Create failed (${res.status}): ${text}`);
+      }
+
       setTitle("");
       setContent("");
       setIsPublic(false);
-      load();
+      await load();
+    } catch (err) {
+      setMsg(err.message || "Failed to create note");
     }
   }
 
   async function del(id) {
-    await fetch(`${API_BASE}/notes/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: "Bearer " + token },
-    });
-    load();
+    setMsg("");
+    try {
+      const res = await fetch(`${API_BASE}/notes/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Delete failed (${res.status}): ${text}`);
+      }
+
+      await load();
+    } catch (err) {
+      setMsg(err.message || "Failed to delete note");
+    }
   }
 
   async function edit(n) {
     const t = prompt("Title", n.title);
+    if (t === null) return;
     const c = prompt("Content", n.content);
+    if (c === null) return;
     const p = confirm("Make public?");
-    if (t !== null) {
-      await fetch(`${API_BASE}/notes/${n._id}`, {
+
+    setMsg("");
+    try {
+      const res = await fetch(`${API_BASE}/notes/${n._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ title: t, content: c, isPublic: p }),
       });
-      load();
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Update failed (${res.status}): ${text}`);
+      }
+
+      await load();
+    } catch (err) {
+      setMsg(err.message || "Failed to update note");
     }
+  }
+
+  if (!token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 px-4">
+        <div className="bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-lg">
+          <p className="text-gray-800">Please log in to view your notes.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -72,29 +129,47 @@ export default function Dashboard() {
       <div className="max-w-4xl mx-auto">
         <h2 className="text-4xl font-bold text-white mb-6 text-center">My Notes</h2>
 
-        <div className="grid gap-4">
-          {notes.map((n) => (
-            <div key={n._id} className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg relative">
-              <div className="flex justify-between items-start">
-                <h3 className="font-semibold text-lg text-gray-800">{n.title}</h3>
-                <span className={`text-xs px-2 py-1 rounded ${n.isPublic ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                  {n.isPublic ? "Public 🔓" : "Private 🔒"}
-                </span>
+        {msg && (
+          <div className="mb-4 bg-white/90 text-red-600 p-3 rounded-lg shadow">
+            {msg}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="text-white text-center mb-6">Loading…</div>
+        ) : (
+          <div className="grid gap-4">
+            {notes.map((n) => (
+              <div key={n._id} className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg relative">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-semibold text-lg text-gray-800">{n.title}</h3>
+                  <span
+                    className={`text-xs px-2 py-1 rounded ${
+                      n.isPublic ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {n.isPublic ? "Public 🔓" : "Private 🔒"}
+                  </span>
+                </div>
+
+                <p className="text-gray-600 mt-2 whitespace-pre-wrap">{n.content}</p>
+
+                <div className="mt-4 flex gap-2">
+                  <button onClick={() => edit(n)} className="px-3 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded transition">
+                    Edit
+                  </button>
+                  <button onClick={() => del(n._id)} className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition">
+                    Delete
+                  </button>
+                </div>
+
+                <p className="text-xs text-gray-500 absolute bottom-2 right-3">
+                  Last updated: {new Date(n.updatedAt).toLocaleString()}
+                </p>
               </div>
-
-              <p className="text-gray-600 mt-2">{n.content}</p>
-
-              <div className="mt-4 flex gap-2">
-                <button onClick={() => edit(n)} className="px-3 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded transition">Edit</button>
-                <button onClick={() => del(n._id)} className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition">Delete</button>
-              </div>
-
-              <p className="text-xs text-gray-500 absolute bottom-2 right-3">
-                Last updated: {new Date(n.updatedAt).toLocaleString()}
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="mt-8 bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-lg">
           <h3 className="font-semibold text-xl text-gray-800 mb-4">Create Note</h3>
