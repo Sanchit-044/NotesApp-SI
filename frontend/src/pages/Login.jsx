@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com";
+const API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com/api";
 
 export default function Login({ onNavigate, onLogin }) {
   const [email, setEmail] = useState("");
