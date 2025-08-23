@@ -12,3 +12,4 @@ Website Link :-
 2. Backend API: https://notesapp-si-backend.onrender.com
 
 I tried to create a fully functional full-stack app that allows user to Signup, Login, CRUD operations and a collaborative workspace but wasn't able to add tags endpoints and filter option.
+To access you can either Signup as a new user or can use (email) testuser5@gmail.com (pass) testuser5
