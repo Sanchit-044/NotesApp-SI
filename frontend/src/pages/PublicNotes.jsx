@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 
-const API = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com/api";
+const RAW = import.meta.env.VITE_API_URL || "https://notesapp-si-backend.onrender.com";
+const API = RAW.replace(/\/+$/, "");
+const API_BASE = API.endsWith("/api") ? API : `${API}/api`;
 
 export default function PublicNotes() {
   const [notes, setNotes] = useState([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -14,11 +17,26 @@ export default function PublicNotes() {
   }, []);
 
   async function load() {
-    const res = await fetch(API + "/notes/public", {
-      headers: { Authorization: "Bearer " + token },
-    });
-    const data = await res.json();
-    setNotes(data || []);
+    setLoading(true);
+    setMsg("");
+    try {
+      const res = await fetch(`${API_BASE}/notes/public`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Load failed (${res.status}): ${text}`);
+      }
+
+      const data = await res.json();
+      setNotes(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setMsg(err.message || "Failed to load public notes");
+      setNotes([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function createPublicNote() {
@@ -27,22 +45,28 @@ export default function PublicNotes() {
       return;
     }
 
-    const res = await fetch(API + "/notes", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({ title, content, isPublic: true }),
-    });
+    setMsg("");
+    try {
+      const res = await fetch(`${API_BASE}/notes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, content, isPublic: true }),
+      });
 
-    if (res.ok) {
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Create failed (${res.status}): ${text}`);
+      }
+
       setTitle("");
       setContent("");
       setMsg("Note created successfully!");
-      load();
-    } else {
-      setMsg("Failed to create note.");
+      await load();
+    } catch (err) {
+      setMsg(err.message || "Failed to create note.");
     }
   }
 
@@ -53,12 +77,10 @@ export default function PublicNotes() {
           Public Notes
         </h2>
 
-        {/* Message */}
         {msg && (
           <p className="text-center text-yellow-300 font-medium mb-4">{msg}</p>
         )}
 
-        {/* Create Public Note */}
         <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg mb-8">
           <h3 className="font-semibold text-lg text-gray-800 mb-3">
             Create Public Note
@@ -84,8 +106,9 @@ export default function PublicNotes() {
           </button>
         </div>
 
-        {/* Public Notes List */}
-        {notes.length === 0 ? (
+        {loading ? (
+          <p className="text-center text-white text-lg">Loading…</p>
+        ) : notes.length === 0 ? (
           <p className="text-center text-white text-lg">
             No public notes available.
           </p>
@@ -96,7 +119,6 @@ export default function PublicNotes() {
                 key={n._id}
                 className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg relative"
               >
-                {/* Title + badge */}
                 <div className="flex justify-between items-start">
                   <h3 className="font-semibold text-lg text-gray-800">
                     {n.title}
@@ -106,15 +128,12 @@ export default function PublicNotes() {
                   </span>
                 </div>
 
-                {/* Content */}
-                <p className="text-gray-600 mt-2">{n.content}</p>
+                <p className="text-gray-600 mt-2 whitespace-pre-wrap">{n.content}</p>
 
-                {/* Author */}
                 <p className="text-sm text-gray-500 mt-2">
                   By: {n.owner?.username || "Unknown"}
                 </p>
 
-                {/* Timestamp → bottom-right */}
                 <p className="text-xs text-gray-500 absolute bottom-2 right-3">
                   Last updated: {new Date(n.updatedAt).toLocaleString()}
                 </p>
