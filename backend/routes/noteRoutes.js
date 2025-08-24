@@ -1,4 +1,3 @@
-// routes/noteRoutes.js
 import express from "express";
 import { body, validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
@@ -9,19 +8,18 @@ import auth from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-/* --------- LISTS --------- */
 async function isMember(workspaceId, userId) {
   const ws = await Workspace.findById(workspaceId).select("members");
   if (!ws) return false;
   return ws.members.some((m) => m.user?.toString() === userId);
 }
 
-// Public notes (specific path)
+// Public notes
 router.get("/public", async (req, res) => {
   try {
     const notes = await Note.find({ isPublic: true })
       .sort({ createdAt: -1 })
-      .populate("owner", "username email"); // ← ensure fields exist in your User model
+      .populate("owner", "username email");
     res.json(notes);
   } catch (err) {
     console.error(err);
@@ -29,7 +27,7 @@ router.get("/public", async (req, res) => {
   }
 });
 
-// Workspace notes (specific path BEFORE /:id)
+// Workspace notes
 router.get("/workspace/:workspaceId", auth, async (req, res) => {
   try {
     const { workspaceId } = req.params;
@@ -52,7 +50,6 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-/* --------- SINGLE NOTE (AFTER specific paths) --------- */
 
 router.get("/:id", async (req, res) => {
   try {
@@ -80,8 +77,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-/* --------- CREATE --------- */
-
+//CREATE NOTES
 // Personal note
 router.post(
   "/",
