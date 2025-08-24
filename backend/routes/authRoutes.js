@@ -71,7 +71,7 @@ router.post(
   }
 );
 
-// ✅ Current user info
+// activet user info
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("username email");
